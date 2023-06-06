@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Background from './Background';
@@ -8,6 +8,8 @@ import Field from './Field';
 
 const Login = () => {
     const navigation = useNavigation();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     return (
         <Background>
@@ -61,8 +63,12 @@ const Login = () => {
                     <Field
                         placeholder="Email / Username"
                         keyboardType={'email-address'}
+                        onChangeText={(text) => setEmail(text)}
+                        value={email}
                     />
-                    <Field placeholder="Password" secureTextEntry={true} />
+                    <Field placeholder="Password" secureTextEntry={true}
+                        onChangeText={(text) => setPassword(text)}
+                        value={password} />
                     <View
                         style={{
                             alignItems: 'flex-end',
@@ -81,7 +87,16 @@ const Login = () => {
                             Forgot Password?
                         </Text>
                     </View>
-                    <LoginButton textColor='white' bgColor={darkBlack} btnLabel="Login" Press={() => navigation.navigate("Dashboard")} />
+                    <LoginButton textColor='white' bgColor={darkBlack} btnLabel="Login" Press={() => {
+                        const adminEmail = "admin@gmail.com";
+                        const adminPassword = "admin";
+
+                        if (email === adminEmail && password === adminPassword) {
+                            navigation.navigate('Dashboard');
+                        } else {
+                            alert('Incorrect email or password');
+                        }
+                    }} />
                     <View style={{
                         display: 'flex',
                         flexDirection: 'row',
