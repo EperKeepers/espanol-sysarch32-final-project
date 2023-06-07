@@ -1,79 +1,71 @@
 const express = require('express');
+const { MongoClient } = require('mongodb');
+const cors = require('cors');
+
+require('dotenv').config();
+
 const app = express();
+app.use(express.json());
+app.use(cors());
 
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'admin' && password === 'password') {
-    res.status(200).json({ message: 'Login successful' });
-  } else {// server.js
+const uri = process.env.ATLAS_URL;
+const client = new MongoClient(uri);
 
-    const express = require('express');
-    const bodyParser = require('body-parser');
-    const mongoose = require('mongoose');
-    
-    const app = express();
-    const PORT = process.env.PORT || 5000;
-    const MONGO_URI = 'mongodb://localhost:27017/mydatabase';
-    
-    // MongoDB User schema
-    const UserSchema = new mongoose.Schema({
-      username: String,
-      password: String,
-    });
-    
-    const User = mongoose.model('User', UserSchema);
-    
-    // Middleware
-    app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(bodyParser.json());
-    
-    // Connect to MongoDB
-    mongoose.connect(
-      MONGO_URI,
-      { useNewUrlParser: true, useUnifiedTopology: true },
-      (err) => {
-        if (err) {
-          console.error('Error connecting to MongoDB:', err);
-        } else {
-          console.log('Connected to MongoDB');
-        }
-      }
-    );
-    
-    // Login route
-    app.post('/login', async (req, res) => {
-      const { username, password } = req.body;
-    
-      try {
-        // Check if user exists in the database
-        const user = await User.findOne({ username });
-    
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
-    
-        // Check if the provided password matches the stored password
-        if (user.password === password) {
-          return res.status(200).json({ message: 'Login successful' });
-        } else {
-          return res.status(401).json({ message: 'Invalid password' });
-        }
-      } catch (error) {
-        console.error('Error during login:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
-    });
-    
-    // Start the server
-    app.listen(PORT, () => {
-      console.log(`Server listening on port ${PORT}`);
-    });
-    
-    res.status(401).json({ message: 'Invalid username or password' });
+async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+    return client.db('sysarch32-database');
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    throw error;
+  }
+}
+app.post('/login', async (req, res) => {
+  try {
+    const db = await connectToMongoDB();
+    const { email, password } = req.body;
+    const user = await db.collection('users').findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (user.password === password) {
+      return res.status(200).json({ message: 'Login successful' });
+    } else {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
-
-const port = 3000;
+app.post('/register', async (req, res) => {
+  try {
+    const db = await connectToMongoDB();
+    const { firstName, lastName, contactNo, email, password } = req.body;
+    const existingUser = await db.collection('users').findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    const newUser = {
+      firstName,
+      lastName,
+      contactNo,
+      email,
+      password,
+    };
+    const result = await db.collection('users').insertOne(newUser);
+    if (result.insertedId) {
+      return res.status(200).json({ message: 'Registration successful' });
+    } else {
+      return res.status(500).json({ message: 'Failed to register user' });
+    }
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

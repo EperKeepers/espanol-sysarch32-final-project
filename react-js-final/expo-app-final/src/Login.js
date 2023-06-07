@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Background from './Background';
@@ -10,6 +11,25 @@ const Login = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+    
+        try {
+            const response = await axios.post('http://localhost:3000/login', { email, password });
+            console.log(response.data.message);
+            alert("Successful Login");
+            navigation.navigate("Dashboard");
+          } catch (error) {
+            if (error.response && error.response.data && error.response.data.message) {
+              console.error('Error logging in:', error.response.data.message);
+              alert("Failed Login: " + error.response.data.message);
+            } else {
+              console.error('Error logging in:', error);
+              alert("Failed Login");
+            }
+          }          
+      };
 
     return (
         <Background>
@@ -63,12 +83,15 @@ const Login = () => {
                     <Field
                         placeholder="Email / Username"
                         keyboardType={'email-address'}
-                        onChangeText={(text) => setEmail(text)}
                         value={email}
+                        onChangeText={setEmail}
                     />
-                    <Field placeholder="Password" secureTextEntry={true}
-                        onChangeText={(text) => setPassword(text)}
-                        value={password} />
+                    <Field 
+                        placeholder="Password" 
+                        secureTextEntry={true}
+                        value={password}
+                        onChangeText={setPassword}
+                    />
                     <View
                         style={{
                             alignItems: 'flex-end',
@@ -87,16 +110,7 @@ const Login = () => {
                             Forgot Password?
                         </Text>
                     </View>
-                    <LoginButton textColor='white' bgColor={darkBlack} btnLabel="Login" Press={() => {
-                        const adminEmail = "admin@gmail.com";
-                        const adminPassword = "admin";
-
-                        if (email === adminEmail && password === adminPassword) {
-                            navigation.navigate('Dashboard');
-                        } else {
-                            alert('Incorrect email or password');
-                        }
-                    }} />
+                    <LoginButton textColor='white' bgColor={darkBlack} btnLabel="Login" Press={handleSubmit} />
                     <View style={{
                         display: 'flex',
                         flexDirection: 'row',

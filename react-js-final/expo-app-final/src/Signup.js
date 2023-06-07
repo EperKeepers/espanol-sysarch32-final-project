@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Background from './Background';
 import RegistrationButton from './RegistrationButton';
@@ -6,6 +7,32 @@ import { darkGreen, lightDarkGrey } from './Constants';
 import Field from './Field';
 
 const Signup = (props) => {
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [contactNo, setContactNo] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post('http://localhost:3000/register', {
+        firstName,
+        lastName,
+        contactNo,
+        email,
+        password,
+      });
+      console.log(response.data.message);
+      alert("Register Success");
+    } catch (error) {
+      console.error('Error signing up:', error.response.data.message);
+      alert("Register Failed");
+    }
+  };
+
   return (
     <Background>
       <View style={{ alignItems: 'center', width: 400 }}>
@@ -38,11 +65,11 @@ const Signup = (props) => {
             alignItems: 'center',
             marginRight: 5,
           }}>
-          <Field placeholder="First Name" />
-          <Field placeholder="Last Name" />
-          <Field placeholder="Email / Username" keyboardType="email-address" />
-          <Field placeholder="Contact Number" keyboardType="numeric" />
-          <Field placeholder="Password" secureTextEntry={true} />
+          <Field placeholder="First Name" value={firstName} onChangeText={setFirstName}/>
+          <Field placeholder="Last Name" value={lastName} onChangeText={setLastName}/>
+          <Field placeholder="Email / Username" keyboardType="email-address" value={email} onChangeText={setEmail}/>
+          <Field placeholder="Contact Number" keyboardType="numeric" value={contactNo} onChangeText={setContactNo}/>
+          <Field placeholder="Password" secureTextEntry={true} value={password} onChangeText={setPassword}/>
           <Field placeholder="Confirm Password" secureTextEntry={true} />
           <View
             style={{
@@ -116,10 +143,7 @@ const Signup = (props) => {
             style={{ marginTop: -160 }}
             bgColor={darkGreen}
             btnLabel="Signup"
-            Press={() => {
-              alert('Account created');
-              props.navigation.navigate('Login');
-            }}
+            Press={handleSignUp}
           />
           <View
             style={{
