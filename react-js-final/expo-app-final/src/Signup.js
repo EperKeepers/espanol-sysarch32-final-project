@@ -5,6 +5,7 @@ import Background from './Background';
 import RegistrationButton from './RegistrationButton';
 import { darkGreen, lightDarkGrey } from './Constants';
 import Field from './Field';
+import { SERVER_IP_ADDRESS } from '../config';
 
 const Signup = (props) => {
 
@@ -18,7 +19,7 @@ const Signup = (props) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:3000/register', {
+      const response = await axios.post('http://'+SERVER_IP_ADDRESS+':3000/register', {
         firstName,
         lastName,
         contactNo,

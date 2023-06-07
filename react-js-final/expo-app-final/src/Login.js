@@ -6,6 +6,7 @@ import Background from './Background';
 import LoginButton from './LoginButton';
 import { darkBlack, lightDarkGrey } from './Constants';
 import Field from './Field';
+import { SERVER_IP_ADDRESS } from '../config';
 
 const Login = () => {
     const navigation = useNavigation();
@@ -16,7 +17,7 @@ const Login = () => {
         e.preventDefault();
     
         try {
-            const response = await axios.post('http://localhost:3000/login', { email, password });
+            const response = await axios.post('http://'+SERVER_IP_ADDRESS+':3000/login', { email, password });
             console.log(response.data.message);
             alert("Successful Login");
             navigation.navigate("Dashboard");
